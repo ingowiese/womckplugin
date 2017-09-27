@@ -2,7 +2,7 @@ CKEDITOR.plugins.add('womlink', {
     icons:'womlink',
     init: function (editor) {
         editor.addCommand('womlink', new CKEDITOR.dialogCommand( 'womlinkDialog' ));
-        editor.ui.addButton('wom link', {
+        editor.ui.addButton('womlink', {
             label: 'insert Wom Link',
             command: 'womlink',
             toolbar: 'insert',

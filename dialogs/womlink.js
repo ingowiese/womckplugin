@@ -22,7 +22,7 @@ CKEDITOR.dialog.add( 'womlinkDialog', function( editor ) {
 			{
 				// Definition of the Basic Settings dialog tab (page).
 				id: 'tab-basic',
-				label: 'Link!! Settings',
+				label: 'Link Settings',
 
 				// The tab content.
 				elements: [
