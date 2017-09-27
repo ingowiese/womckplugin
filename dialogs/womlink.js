@@ -13,7 +13,7 @@ CKEDITOR.dialog.add( 'womlinkDialog', function( editor ) {
 	return {
 
 		// Basic properties of the dialog window: title, minimum size.
-		title: 'Abbreviation Properties',
+		title: 'Link Properties',
 		minWidth: 400,
 		minHeight: 200,
 
@@ -22,15 +22,15 @@ CKEDITOR.dialog.add( 'womlinkDialog', function( editor ) {
 			{
 				// Definition of the Basic Settings dialog tab (page).
 				id: 'tab-basic',
-				label: 'Basic Settings',
+				label: 'Link!! Settings',
 
 				// The tab content.
 				elements: [
 					{
 						// Text input field for the abbreviation text.
 						type: 'text',
-						id: 'abbr',
-						label: 'Abbreviation',
+						id: 'choices',
+						label: 'Choices',
 
 						// Validation checking whether the field is not empty.
 						validate: CKEDITOR.dialog.validate.notEmpty( "Abbreviation field cannot be empty." )
@@ -38,8 +38,8 @@ CKEDITOR.dialog.add( 'womlinkDialog', function( editor ) {
 					{
 						// Text input field for the abbreviation title (explanation).
 						type: 'text',
-						id: 'title',
-						label: 'Explanation',
+						id: 'suggestion',
+						label: 'Suggestion',
 						validate: CKEDITOR.dialog.validate.notEmpty( "Explanation field cannot be empty." )
 					}
 				]
