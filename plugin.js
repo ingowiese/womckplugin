@@ -1,15 +1,12 @@
 CKEDITOR.plugins.add('womlink', {
-    icons: 'womlink',
+    icons:'womlink',
     init: function (editor) {
-        editor.addCommand('womlink', {
-            exec: function (editor) {
-                console.log('editor, here we go');
-            }
-        });
-        editor.ui.addButton('womlink', {
-            label: 'insert Byl Link',
+        editor.addCommand('womlink', new CKEDITOR.dialogCommand( 'womlinkDialog' ));
+        editor.ui.addButton('wom link', {
+            label: 'insert Wom Link',
             command: 'womlink',
-            toolbar: 'insert'
+            toolbar: 'insert',
         });
+        CKEDITOR.dialog.add( 'womlinkDialog', this.path + 'dialogs/womlink.js' );
     }
 });
