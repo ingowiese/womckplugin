@@ -10,16 +10,21 @@
 
 // Our dialog definition.
 CKEDITOR.dialog.add('womlinkDialog', function (editor) {
+	// this.getInputElement().$ refers to the "real" select box
+	// you can add or remove options and modify as needed
 	let linktypeChanged = function (element) {
-		let selectBox = this.getInputElement().$;
+		let linktypeSelectBox = this.getInputElement().$
 		let dialog = this.getDialog();
-		let p2 = dialog.getContentElement('tab-basic', 'projektartikel');
-		if ('PROJECT_ARTICLE' === selectBox.value) {
-			p2.getInputElement().$.options.length = 0;
-			p2.getInputElement().$.options[0] = new Option('hans', 'Hans');
-			p2.getInputElement().$.options[1] = new Option('franz', 'franz');
+		let ce = dialog.getContentElement('tab-basic', 'projektartikel');
+		let projektartikelSelectBox = ce.getInputElement().$;
+		if ('PROJECT_ARTICLE' === linktypeSelectBox.value) {
+			projektartikelSelectBox.options.length = 0;
+			projektartikelSelectBox.options[0] = new Option('hans', 'Hans');
+			projektartikelSelectBox.options[1] = new Option('franz', 'franz');
+			projektartikelSelectBox.removeAttribute("disabled");
 		} else {
-			p2.getInputElement().$.options.length = 0;
+			projektartikelSelectBox.options.length = 0;
+			projektartikelSelectBox.setAttribute("disabled","disabled");
 		}
 	}
 	return {
@@ -65,8 +70,6 @@ CKEDITOR.dialog.add('womlinkDialog', function (editor) {
 						items: [],
 						onLoad: function (element) {
 							//TODO: find out how to call setup .... 
-							// this.getInputElement().$ refers to the "real" select box
-							// you can add or remove options and modify as needed
 							let selectBox = this.getInputElement().$;
 
 							CKEDITOR.ajax.load('/getSelectChoices', function (data) {
