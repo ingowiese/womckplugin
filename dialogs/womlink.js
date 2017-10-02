@@ -9,7 +9,19 @@
  */
 
 // Our dialog definition.
-CKEDITOR.dialog.add( 'womlinkDialog', function( editor ) {
+CKEDITOR.dialog.add('womlinkDialog', function (editor) {
+	let linktypeChanged = function (element) {
+		let selectBox = this.getInputElement().$;
+		let dialog = this.getDialog();
+		let p2 = dialog.getContentElement('tab-basic', 'projektartikel');
+		if ('PROJECT_ARTICLE' === selectBox.value) {
+			p2.getInputElement().$.options.length = 0;
+			p2.getInputElement().$.options[0] = new Option('hans', 'Hans');
+			p2.getInputElement().$.options[1] = new Option('franz', 'franz');
+		} else {
+			p2.getInputElement().$.options.length = 0;
+		}
+	}
 	return {
 
 		// Basic properties of the dialog window: title, minimum size.
@@ -18,29 +30,75 @@ CKEDITOR.dialog.add( 'womlinkDialog', function( editor ) {
 		minHeight: 200,
 
 		// Dialog window content definition.
-		contents: [
-			{
+		contents: [{
 				// Definition of the Basic Settings dialog tab (page).
 				id: 'tab-basic',
 				label: 'Link Settings',
 
 				// The tab content.
-				elements: [
-					{
-						// Text input field for the abbreviation text.
-						type: 'text',
-						id: 'choices',
-						label: 'Choices',
+				elements: [{
+						type: 'select',
+						id: 'linktyp',
+						label: 'Linktyp',
+						items: [],
+						onLoad: function (element) {
+							//TODO: find out how to call setup .... 
+							// this.getInputElement().$ refers to the "real" select box
+							// you can add or remove options and modify as needed
+							let selectBox = this.getInputElement().$;
 
-						// Validation checking whether the field is not empty.
-						validate: CKEDITOR.dialog.validate.notEmpty( "Abbreviation field cannot be empty." )
+							CKEDITOR.ajax.load('/getSelectChoices', function (data) {
+								let jsonData = JSON.parse(data);
+								let navTargets = jsonData['navigationTargetChoices']['types'];
+								for (i = 0; i < navTargets.length; i++) {
+									selectBox.options[i] = new Option(navTargets[i]['text'], navTargets[i]['value']);
+								}
+							});
+						},
+						onChange: linktypeChanged
+						//validate: CKEDITOR.dialog.validate.notEmpty( "Abbreviation field cannot be empty." )
 					},
 					{
-						// Text input field for the abbreviation title (explanation).
-						type: 'text',
-						id: 'suggestion',
-						label: 'Suggestion',
-						validate: CKEDITOR.dialog.validate.notEmpty( "Explanation field cannot be empty." )
+						type: 'select',
+						id: 'projekt',
+						label: 'Projekt',
+						items: [],
+						onLoad: function (element) {
+							//TODO: find out how to call setup .... 
+							// this.getInputElement().$ refers to the "real" select box
+							// you can add or remove options and modify as needed
+							let selectBox = this.getInputElement().$;
+
+							CKEDITOR.ajax.load('/getSelectChoices', function (data) {
+								let jsonData = JSON.parse(data);
+								let navTargets = jsonData['projectChoices'];
+								for (i = 0; i < navTargets.length; i++) {
+									selectBox.options[i] = new Option(navTargets[i]['text'], navTargets[i]['value']);
+								}
+							});
+						},
+						onChange: function (element) {
+							let selectBox = this.getInputElement().$;
+							console.log('projekt on change called, new value is ' + selectBox.value);
+						}
+						//validate: CKEDITOR.dialog.validate.notEmpty( "Abbreviation field cannot be empty." )
+					},
+					{
+						type: 'select',
+						id: 'projektartikel',
+						label: 'Projektartikel',
+						items: [],
+						onLoad: function (element) {
+							//TODO: find out how to call setup .... 
+							// this.getInputElement().$ refers to the "real" select box
+							// you can add or remove options and modify as needed
+							let selectBox = this.getInputElement().$;
+						},
+						onChange: function (element) {
+							let selectBox = this.getInputElement().$;
+							console.log('projekt on change called, new value is ' + selectBox.value);
+						}
+						//validate: CKEDITOR.dialog.validate.notEmpty( "Abbreviation field cannot be empty." )
 					}
 				]
 			},
@@ -49,38 +107,37 @@ CKEDITOR.dialog.add( 'womlinkDialog', function( editor ) {
 			{
 				id: 'tab-adv',
 				label: 'Advanced Settings',
-				elements: [
-					{
-						// Another text field for the abbr element id.
-						type: 'text',
-						id: 'id',
-						label: 'Id'
-					}
-				]
+				elements: [{
+					// Another text field for the abbr element id.
+					type: 'text',
+					id: 'id',
+					label: 'Id'
+				}]
 			}
 		],
 
 		// This method is invoked once a user clicks the OK button, confirming the dialog.
-		onOk: function() {
+		onOk: function () {
 
 			// The context of this function is the dialog object itself.
 			// http://docs.ckeditor.com/#!/api/CKEDITOR.dialog
 			var dialog = this;
 
 			// Create a new <abbr> element.
-			var abbr = editor.document.createElement( 'abbr' );
+			var abbr = editor.document.createElement('abbr');
 
 			// Set element attribute and text by getting the defined field values.
-			abbr.setAttribute( 'title', dialog.getValueOf( 'tab-basic', 'title' ) );
-			abbr.setText( dialog.getValueOf( 'tab-basic', 'abbr' ) );
+			abbr.setAttribute('title', dialog.getValueOf('tab-basic', 'title'));
+			abbr.setText(dialog.getValueOf('tab-basic', 'abbr'));
 
 			// Now get yet another field value from the Advanced Settings tab.
-			var id = dialog.getValueOf( 'tab-adv', 'id' );
-			if ( id )
-				abbr.setAttribute( 'id', id );
+			var id = dialog.getValueOf('tab-adv', 'id');
+			if (id)
+				abbr.setAttribute('id', id);
 
 			// Finally, insert the element into the editor at the caret position.
-			editor.insertElement( abbr );
+			editor.insertElement(abbr);
 		}
+
 	};
 });
