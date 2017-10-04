@@ -13,20 +13,40 @@ CKEDITOR.dialog.add('womlinkDialog', function (editor) {
 	// this.getInputElement().$ refers to the "real" select box
 	// you can add or remove options and modify as needed
 	let linktypeChanged = function (element) {
-		let linktypeSelectBox = this.getInputElement().$
 		let dialog = this.getDialog();
-		let ce = dialog.getContentElement('tab-basic', 'projektartikel');
-		let projektartikelSelectBox = ce.getInputElement().$;
+
+		let linktypeSelectBox = dialog.getContentElement('tab-basic', 'linktyp').getInputElement().$;
+		let projektartikelSelectBox = dialog.getContentElement('tab-basic', 'projektartikel').getInputElement().$;
+		let projektSelectBox = dialog.getContentElement('tab-basic', 'projekt').getInputElement().$;
+
+		let hideProjektartikelSelectBox = true;
 		if ('PROJECT_ARTICLE' === linktypeSelectBox.value) {
+			hideProjektartikelSelectBox = false;
 			projektartikelSelectBox.options.length = 0;
-			projektartikelSelectBox.options[0] = new Option('hans', 'Hans');
-			projektartikelSelectBox.options[1] = new Option('franz', 'franz');
 			projektartikelSelectBox.removeAttribute("disabled");
-		} else {
-			projektartikelSelectBox.options.length = 0;
-			projektartikelSelectBox.setAttribute("disabled","disabled");
+			let psn = dialog.getContentElement('tab-basic', 'projekt').getInputElement().$.value;
+			let url = '/getSuggestions?projectShortname=' + psn + '&navTargetType=projektartikel&shapeId=byl';
+			CKEDITOR.ajax.load(url, function (data) {
+				let jsonData = JSON.parse(data);
+				for (i = 0; i < jsonData.length; i++) {
+					let v = jsonData[i]['value'];
+					let k = jsonData[i]['text'];
+					projektartikelSelectBox.options[i] = new Option(k, v);
+				}
+
+			});
 		}
-	}
+		if ('EXTERNAL_LINK' === linktypeSelectBox.value) {
+			projektSelectBox.setAttribute("disabled", "disabled");
+		} else {
+			projektSelectBox.removeAttribute("disabled");
+		}
+
+		if (hideProjektartikelSelectBox) {
+			projektartikelSelectBox.options.length = 0;
+			projektartikelSelectBox.setAttribute("disabled", "disabled");
+		}
+	};
 	return {
 
 		// Basic properties of the dialog window: title, minimum size.
@@ -45,6 +65,7 @@ CKEDITOR.dialog.add('womlinkDialog', function (editor) {
 						type: 'select',
 						id: 'linktyp',
 						label: 'Linktyp',
+						minWidth: '200px',
 						items: [],
 						onLoad: function (element) {
 							//TODO: find out how to call setup .... 
@@ -55,8 +76,12 @@ CKEDITOR.dialog.add('womlinkDialog', function (editor) {
 							CKEDITOR.ajax.load('/getSelectChoices', function (data) {
 								let jsonData = JSON.parse(data);
 								let navTargets = jsonData['navigationTargetChoices']['types'];
+								let pos = 0;
 								for (i = 0; i < navTargets.length; i++) {
-									selectBox.options[i] = new Option(navTargets[i]['text'], navTargets[i]['value']);
+									let v = navTargets[i]['value'];
+									//wir fangen klein an
+									if ('PROJECT_ARTICLE' === v || 'PROJECT_MAIN_ARTICLE' === v || 'EXTERNAL_LINK' === v)
+										selectBox.options[pos++] = new Option(navTargets[i]['text'], v);
 								}
 							});
 						},
@@ -68,6 +93,7 @@ CKEDITOR.dialog.add('womlinkDialog', function (editor) {
 						id: 'projekt',
 						label: 'Projekt',
 						items: [],
+						minWidth: '200px',
 						onLoad: function (element) {
 							//TODO: find out how to call setup .... 
 							let selectBox = this.getInputElement().$;
@@ -80,10 +106,7 @@ CKEDITOR.dialog.add('womlinkDialog', function (editor) {
 								}
 							});
 						},
-						onChange: function (element) {
-							let selectBox = this.getInputElement().$;
-							console.log('projekt on change called, new value is ' + selectBox.value);
-						}
+						onChange: linktypeChanged
 						//validate: CKEDITOR.dialog.validate.notEmpty( "Abbreviation field cannot be empty." )
 					},
 					{
@@ -91,17 +114,31 @@ CKEDITOR.dialog.add('womlinkDialog', function (editor) {
 						id: 'projektartikel',
 						label: 'Projektartikel',
 						items: [],
+						attributes: {
+							'styles': 'width:200px'
+						},
 						onLoad: function (element) {
 							//TODO: find out how to call setup .... 
 							// this.getInputElement().$ refers to the "real" select box
 							// you can add or remove options and modify as needed
 							let selectBox = this.getInputElement().$;
 						},
-						onChange: function (element) {
-							let selectBox = this.getInputElement().$;
-							console.log('projekt on change called, new value is ' + selectBox.value);
+						onChange: function () {
+							console.log('not implemented');
 						}
 						//validate: CKEDITOR.dialog.validate.notEmpty( "Abbreviation field cannot be empty." )
+					},
+					{
+						type: 'text',
+						id: 'linktext',
+						label: 'Link Text',
+						validate: CKEDITOR.dialog.validate.notEmpty("Der Linktext darf nicht leer sein.")
+					},
+					{
+						type: 'text',
+						id: 'linkziel',
+						label: 'Link Ziel',
+						//validate: CKEDITOR.dialog.validate.notEmpty("Der Linktext darf nicht leer sein.")
 					}
 				]
 			},
@@ -127,16 +164,29 @@ CKEDITOR.dialog.add('womlinkDialog', function (editor) {
 			var dialog = this;
 
 			// Create a new <abbr> element.
-			var abbr = editor.document.createElement('abbr');
+			var abbr = editor.document.createElement('a');
 
 			// Set element attribute and text by getting the defined field values.
-			abbr.setAttribute('title', dialog.getValueOf('tab-basic', 'title'));
-			abbr.setText(dialog.getValueOf('tab-basic', 'abbr'));
+			let linktype = dialog.getValueOf('tab-basic', 'linktyp');
+			if ('PROJECT_MAIN_ARTICLE' === linktype) {
+				let target = '/project/' + dialog.getValueOf('tab-basic', 'projekt') + '/main.html';
+				let text = dialog.getValueOf('tab-basic', 'linktext');
+				abbr.setAttribute('href', target);
+				abbr.setText(text);
 
-			// Now get yet another field value from the Advanced Settings tab.
-			var id = dialog.getValueOf('tab-adv', 'id');
-			if (id)
-				abbr.setAttribute('id', id);
+			} else if ('PROJECT_ARTICLE' === linktype) {
+				let p = dialog.getValueOf('tab-basic', 'projekt');
+				let a = dialog.getValueOf('tab-basic', 'projektartikel');
+				let target = '/project/' + p + '/article/' + a + '/show.html';
+				let text = dialog.getValueOf('tab-basic', 'linktext');
+				abbr.setAttribute('href', target);
+				abbr.setText(text);
+			} else if ('EXTERNAL_LINK' === linktype) {
+				let text = dialog.getValueOf('tab-basic', 'linktext');
+				let target = dialog.getValueOf('tab-basic', 'linkziel');
+				abbr.setAttribute('href', target);
+				abbr.setText(text);
+			}
 
 			// Finally, insert the element into the editor at the caret position.
 			editor.insertElement(abbr);
