@@ -12,7 +12,7 @@
 CKEDITOR.dialog.add('womlinkDialog', function (editor) {
 	// this.getInputElement().$ refers to the "real" select box
 	// you can add or remove options and modify as needed
-	let linktypeChanged = function (element) {
+	let dataChanged = function (element) {
 		let dialog = this.getDialog();
 
 		let linktypeSelectBox = dialog.getContentElement('tab-basic', 'linktyp').getInputElement().$;
@@ -30,7 +30,7 @@ CKEDITOR.dialog.add('womlinkDialog', function (editor) {
 				let jsonData = JSON.parse(data);
 				for (i = 0; i < jsonData.length; i++) {
 					let v = jsonData[i]['value'];
-					let k = jsonData[i]['text'];
+					let k = jsonData[i]['value'];
 					projektartikelSelectBox.options[i] = new Option(k, v);
 				}
 
@@ -85,7 +85,7 @@ CKEDITOR.dialog.add('womlinkDialog', function (editor) {
 								}
 							});
 						},
-						onChange: linktypeChanged
+						onChange: dataChanged
 						//validate: CKEDITOR.dialog.validate.notEmpty( "Abbreviation field cannot be empty." )
 					},
 					{
@@ -106,7 +106,7 @@ CKEDITOR.dialog.add('womlinkDialog', function (editor) {
 								}
 							});
 						},
-						onChange: linktypeChanged
+						onChange: dataChanged
 						//validate: CKEDITOR.dialog.validate.notEmpty( "Abbreviation field cannot be empty." )
 					},
 					{
